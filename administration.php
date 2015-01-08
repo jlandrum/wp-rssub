@@ -12,21 +12,39 @@ function rssub_options() {
 	}
 	
 	?>
-	<div class="wrap">
+	<div class="wrap rssub-host">
 	 <h1>Really Simple Subscriptions</h1>
-	 <div class="rssub-actionbox">
-	 	 <h1>Debug Console</h1>
-	   <label for="email">Send Test E-Mail:</label><input id="email" name="email" data-key="to"/>
-	 	 <button class="button rssub-api-trigger" href="#" data-output="write_to_div" data-output-params="#ste_console" data-targets="email" data-action="email">Send Mail</button>	
-	   <div class="console" id="ste_console">Console:</div>
+	 <div class="rssub-right">
+		 <div class="rssub-actionbox">
+			 <h1>Allowed Post Types</h1><div class="table">
+			 <?php
+					foreach (get_post_types(array(),'names') as $type) {
+						$post_type = get_post_type_object($type);
+						$name = $post_type->labels->singular_name;
+					 echo "<div class=\"cell\"><input type=\"checkbox\" name=\"types\" value=\"$type\"> $name</div>";
+				 }
+			 ?></div>
+		 </div>
+		 <div class="rssub-actionbox">
+			 <h1>Settings</h1>
+			 <button class="button rssub-api-saveall" href="#">Save All</button><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>	
+		 </div>
+   </div>
+	<div class="rssub-left">
+		 <div class="rssub-actionbox">
+			 <h1>Debug Console</h1>
+			 <label for="email">Send Test E-Mail:</label><input id="email" name="email" data-key="to"/>
+			 <button class="button rssub-api-trigger" href="#" data-output="write_to_div" data-output-params="#ste_console" data-targets="email" data-action="email">Send Mail</button>	
+			 <div class="console" id="ste_console">Console:</div>
+		 </div>
+		 <div class="rssub-actionbox">
+			 <h1>New Post Template</h1>
+			 <input class="header" id="title" name="title" placeholder="Subject" data-key="subject" value="<?php echo stripslashes(get_option(RSSub\OPTION_SUBJECT,'')); ?>"/><br/>
+			 <?php wp_editor(stripslashes(get_option(RSSub\OPTION_CONTENT,'')),'message'); ?><br/>
+			 <button class="button rssub-api-trigger" href="#" data-output="show_dialog" data-targets="title,message" data-action="update_template">Save Changes</button>	
+		 </div>
 	 </div>
-	 <div class="rssub-actionbox">
-	 	 <h1>New Post Template</h1>
-	   <input class="header" id="title" name="title" placeholder="Subject" data-key="subject" value="<?php echo stripslashes(get_option(RSSub\OPTION_SUBJECT,'')); ?>"/><br/>
-	   <?php wp_editor(stripslashes(get_option(RSSub\OPTION_CONTENT,'')),'message'); ?><br/>
-	 	 <button class="button rssub-api-trigger" href="#" data-output="show_dialog" data-targets="title,message" data-action="update_template">Save Changes</button>	
-	 </div>
-	</div>
+ </div>
 	<?php
 }
 

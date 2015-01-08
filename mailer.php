@@ -25,13 +25,15 @@
 			
 			setup_postdata($post); 
 			
+			$post_type = get_post_type_object( $post->post_type );
+			
 			return str_replace(
 				array('{POST_TYPE}',
 							'{AUTHOR_NAME}',
 						  '{POST_URL}',
 							'{UNSUBSCRIBE_LINK}'
 						 ),
-				array($post->post_type, 
+				array($post_type->labels->singular_name, 
 							get_the_author(),
 							get_permalink(),
 							"/"
