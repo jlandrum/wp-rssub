@@ -18,6 +18,30 @@
 				array('Content-Type: text/html' . "\r\n"));
 		}
 		
+		function send_activation($to, $hash) {
+			return wp_mail(
+				$to, 
+				$this->parseForActivation($this->subject, $hash), 
+				$this->parseForActivation($this->message, $hash),
+				array('Content-Type: text/html' . "\r\n"));
+		}
+				
+		function parseForActivation($message,$hash) {
+			return str_replace(
+				array(
+							'{ACTIVATE_LINK}'
+						 ),
+				array(
+							$this->create_link($hash)
+						 ),
+				$message
+			);
+		}
+		
+		function create_link($hash) {
+			return get_site_url() . "/?subscription_service&token=$hash&redirect=" .  get_site_url();
+		}
+		
 		function parseMessage($message, $post, $target) {
 			if ($post == null) {
 				return $message;

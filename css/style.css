@@ -31,9 +31,8 @@
 
 .rssub-actionbox h1 {
 	margin: -6px -6px 6px -6px;
-	padding: 6px;
+	padding: 12px 10px;
 	width: 100%;
-	background-color: rgba(0,0,50,0.05);
 	border-top-left-radius: 2px;
 	border-top-right-radius: 2px;
 	box-shadow: 0px -1px 1px rgba(0,0,0,0.1) inset;
@@ -79,4 +78,26 @@
 
 .rssub-actionbox .table {
 	-webkit-column-width: 120px;
+}
+
+.hidden {
+	display: none;
+}
+
+api-graph {
+	display: none;
+}
+
+.subtable {
+	max-height: 500px;
+	overflow-y: scroll;
+}
+.subtable .row .col {
+	display: inline-block;
+	float: left;
+	box-sizing: border-box;
+	width: 15%;
+}
+.subtable .row .col:first-child {
+	width: 70%;
 }

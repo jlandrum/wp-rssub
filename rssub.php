@@ -7,7 +7,6 @@
   * License: MIT License
   */
 
-
 	// Internal Objects
 	include('db.php');
 	include('mailer.php');
@@ -20,3 +19,6 @@
 
 	// Front-end
   include('administration.php');
+	include('integration.php');
+
+	register_activation_hook( __FILE__, 'RSSub\_Private\setup_plugin' );

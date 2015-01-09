@@ -9,7 +9,8 @@
 
 	function rssub_new_post($id, $post) {
 		$mail = new RSSub\Mail(stripslashes(get_option(RSSub\OPTION_CONTENT,'')), stripslashes(get_option(RSSub\OPTION_SUBJECT,'')));
-		$mail->send("thyme.cypher@gmail.com", $post);
-		echo "Mail Sent!";
+		foreach (RSSub\get_subscribers(false) as $suber) {
+			$mail->send($suber->email, $post);
+		}
 	}
 	
