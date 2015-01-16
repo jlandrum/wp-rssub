@@ -96,33 +96,41 @@ namespace RSSub {
 	const OPTION_SUBJECT = "rssub_subject";
 	const OPTION_CONTENT = "rssub_content";
 	const OPTION_POST_TYPES = "rssub_post_types";
+	
+	const TABLE_USER_DETAILS 			 = "rssub_users";
+	const TABLE_USER_SUBSCRIPTIONS = "rssub_subscriptions";
+	
+	function get_full_table_name($target) {
+		global $wpdb;
+		return $wpdb->prefix . $target;
+	}
 }
+
+
 namespace RSSub\_Private {
 	function setup_plugin() {
 		global $wpdb;
 		global $rssub_db_version;
 
-		$sub_table_name = $wpdb->prefix . 'rssub';
-		$ex_table_name = $wpdb->prefix . 'rssub_ex';
-
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql_sub = "CREATE TABLE $sub_table_name (
-			id mediumint(9) NOT NULL AUTO_INCREMENT,
-			time   datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-			email  tinytext NOT NULL,
-			hash   text NOT NULL,
-			active boolean NOT NULL,
-			UNIQUE KEY id (id)
-		) $charset_collate;";
-		
-		$sql_ex = "CREATE TABLE $ex_table_name (
-			id mediumint(9) NOT NULL AUTO_INCREMENT,
-			account mediumint(9) NOT NULL,
-			key tinytext NOT NULL,
-			value text NOT NULL,
-			UNIQUE KEY id (id)
-		) $charset_collate;";
+		$sqls = array(
+			"CREATE TABLE " . \RSSub\get_full_table_name(TABLE_USER_DETAILS) . " (
+				id mediumint(9) NOT NULL AUTO_INCREMENT,
+				time   datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+				email  tinytext NOT NULL,
+				hash   text NOT NULL,
+				active boolean NOT NULL,
+				UNIQUE KEY id (id)
+			) $charset_collate;",
+			"CREATE TABLE " . \RSSub\get_full_table_name(TABLE_USER_SUBSCRIPTIONS) . " (
+				id mediumint(9) NOT NULL AUTO_INCREMENT,
+				account mediumint(9) NOT NULL,
+				key tinytext NOT NULL,
+				value text NOT NULL,
+				UNIQUE KEY id (id)
+			) $charset_collate;"
+		);
 
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		
