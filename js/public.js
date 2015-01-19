@@ -10,6 +10,8 @@ jQuery(function($) {
 			case 'subscribe':
 				data['action'] = "add_subscriber";
 				data['email'] = $('input[data-field=email]').val();	
+				data['user_id'] = $('input[data-field=user_id]').val();
+				data['post_type'] = $('input[data-field=post_type]').val();
 				api_call(data, form.data("callback"));
 		}
 	}); 

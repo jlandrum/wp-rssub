@@ -140,7 +140,26 @@ namespace RSSub {
 			WHERE $users.hash = \"$hash\";");											 
 	}
 	
-//	function add_subscriber_with_params($
+	function add_subscriber_with_params($email, $posttype, $user) {
+		global $wpdb;
+
+		$users = get_user_table();
+		$subs  = get_subscribe_table();
+
+		if (!$wpdb->query($wpdb->prepare("
+			INSERT INTO $subs
+			(uid, account_id, post_type)
+			SELECT
+					(SELECT id FROM $users WHERE email = %s)," .
+					($user==null?"(NULL),":"(%d),") .
+					($posttype==null?"(NULL)":"(%s)") .
+					";"
+			,$email,$user,$posttype))) {
+			return $wpdb->last_query;
+		};
+		
+		return true;
+	}
 
 	const OPTION_ACTV_SUBJECT = "rssub_actv_subject";
 	const OPTION_ACTV_CONTENT = "rssub_actv_content";

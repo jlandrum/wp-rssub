@@ -57,10 +57,18 @@ function rssub_api_handler() {
 							throw new Exception("Invalid E-mail Specified.");
 						}
 						$res = RSSub\create_subscriber($_REQUEST['email'],$_REQUEST['active']);
-						if (res != 1) {
-							throw new Exception("The subscriber " . $_REQUEST['email'] . " has already subscribed.");
-						};
-						
+					
+						if ($_REQUEST['explicit_add']) {
+							if (res != 1) {
+								throw new Exception("The subscriber " . $_REQUEST['email'] . " has already subscribed.");
+							};
+						} else {
+							$res = RSSub\add_subscriber_with_params($_REQUEST['email'],$_REQUEST['post_type'],$_REQUEST['user_id']);
+							if ($res != 1) {
+								throw new Exception("There was an issue subscribing to the provided subscription set: " . $res);
+							};
+						}
+					
 						$result_data['message'] = "Subscriber successfully added!";
 						$result_data['status'] = 1;								
 						break;
