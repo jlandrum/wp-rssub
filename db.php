@@ -1,73 +1,77 @@
 <?php 
 namespace {
 	global $rssub_db_version;
-	$rssub_db_version = '1.1';
+	$rssub_db_version = '2.0';
 }
 
 namespace RSSub {
 	function create_subscriber($email, $active) {
 		global $wpdb;
-
-		$table_name = $wpdb->prefix . 'rssub';
-
-		$wpdb->insert( 
-			$table_name, 
-			array( 
-				'time' => current_time( 'mysql' ), 
-				'hash' => md5(uniqid(rand(), true)), 
-				'email' => $email, 
-				'active' => $active, 
-			) 
-		);
+		$users = get_user_table();
+		$hash = md5(uniqid(rand(), true));
 		
-		if (!$active) {
+		if (!$wpdb->insert( 
+			$users, 
+			array( 
+				'hash' => $hash, 
+				'email' => $email,
+				'active' => false
+			) 
+		)) {
+			return var_dump( $wpdb->last_error );
+		};
+		
+		if ($active == true) {
+			return activate($hash);
+		} else {
 			$query = $wpdb->prepare("
 				SELECT hash 
-				FROM $table_name
+				FROM $users
 				WHERE email = %s", $email);
 			
 			$mail = new Mail(stripslashes(get_option(OPTION_ACTV_CONTENT,'')), stripslashes(get_option(OPTION_ACTV_SUBJECT,'')));
 			$mail->send_activation($email, $wpdb->get_var($query));
+			
+			return true;
 		}
 	}
 	
-	function get_subscribers($active) {
+	function get_subscribers($active, $today = false) {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'rssub';
-		
+		$users = get_user_table();
+
 		return $wpdb->get_results( "
 			SELECT * 
-			FROM $table_name
-			" . ($active?"WHERE active = true":"") 
+			FROM $users
+			WHERE " . ($active?"active = true AND ":"") . ($today?"added >= CURDATE()":"TRUE = TRUE") 
 		);
 	}
 	
 	function activate($hash) {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'rssub';
+		$users = get_user_table();
 
-		$wpdb->update( 
-			$table_name, 
+		return ($wpdb->update( 
+			$users, 
 			array( 
-				'time' => current_time( 'mysql' ), 
+				'added' => current_time( 'mysql' ), 
 				'active' => true, 
-				'hash' => ''
 			),
 			array(
 				'hash' => $hash
 			)
-		);
+		))?true:var_dump( $wpdb->last_error );
 	}
 	
 	function change_subscriber_activation_state($id,$active) {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'rssub';
+		$users = get_user_table();
 
 		$wpdb->update( 
-			$table_name, 
+			$users, 
 			array( 
 				'time' => current_time( 'mysql' ), 
 				'active' => $active, 
@@ -77,19 +81,66 @@ namespace RSSub {
 			)
 		);
 	}
-	
+
 	function delete_subscriber($id) {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'rssub';
+		$users = get_user_table();
+		$subs  = get_subscribe_table();
 
 		$wpdb->delete( 
-			$table_name, 
+			$users, 
 			array(
 				'id' => $id
 			)
 		);
+		
+		$wpdb->delete( 
+			$subs, 
+			array(
+				'uid' => $id
+			)
+		);
 	}
+	
+	function get_subscribers_for_params($userid, $posttype) {
+		global $wpdb;
+		 
+		$users = get_user_table();
+		$subs  = get_subscribe_table();
+		
+		return $wpdb->get_results("SELECT DISTINCT $users.email FROM $subs 
+			JOIN $users ON ($users.id = uid)
+			WHERE
+			(account_id = $userid OR account_id IS NULL) AND
+			(post_type = '$posttype' OR post_type IS NULL);");											 
+	}
+	
+	function get_subscriptions_for_user($hash) {
+		global $wpdb;
+		 
+		$users = get_user_table();
+		$subs  = get_subscribe_table();
+		$wp_users = $wpdb->prefix . "users";
+
+		return $wpdb->get_results("SELECT $subs.*, $wp_users.display_name FROM $subs
+			JOIN $users ON ($users.id = uid)
+			LEFT JOIN $wp_users ON ($wp_users.id = $subs.account_id)
+			WHERE $users.hash = \"$hash\";");											 
+	}
+	
+	function get_subscription_count_for_user($hash) {
+		global $wpdb;
+		 
+		$users = get_user_table();
+		$subs  = get_subscribe_table();
+
+		return $wpdb->get_var("SELECT COUNT(*) FROM $subs
+			JOIN $users ON ($users.id = uid)
+			WHERE $users.hash = \"$hash\";");											 
+	}
+	
+//	function add_subscriber_with_params($
 
 	const OPTION_ACTV_SUBJECT = "rssub_actv_subject";
 	const OPTION_ACTV_CONTENT = "rssub_actv_content";
@@ -100,9 +151,14 @@ namespace RSSub {
 	const TABLE_USER_DETAILS 			 = "rssub_users";
 	const TABLE_USER_SUBSCRIPTIONS = "rssub_subscriptions";
 	
-	function get_full_table_name($target) {
+	function get_user_table() {
 		global $wpdb;
-		return $wpdb->prefix . $target;
+		return $wpdb->prefix . TABLE_USER_DETAILS;
+	}
+
+	function get_subscribe_table() {
+		global $wpdb;
+		return $wpdb->prefix . TABLE_USER_SUBSCRIPTIONS;
 	}
 }
 
@@ -115,27 +171,26 @@ namespace RSSub\_Private {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sqls = array(
-			"CREATE TABLE " . \RSSub\get_full_table_name(TABLE_USER_DETAILS) . " (
-				id mediumint(9) NOT NULL AUTO_INCREMENT,
-				time   datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-				email  tinytext NOT NULL,
+			"CREATE TABLE " . \RSSub\get_user_table() . " (
+				id     mediumint(9) NOT NULL AUTO_INCREMENT,
+				added   datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+				email  varchar(128) NOT NULL UNIQUE,
 				hash   text NOT NULL,
 				active boolean NOT NULL,
 				UNIQUE KEY id (id)
 			) $charset_collate;",
-			"CREATE TABLE " . \RSSub\get_full_table_name(TABLE_USER_SUBSCRIPTIONS) . " (
-				id mediumint(9) NOT NULL AUTO_INCREMENT,
-				account mediumint(9) NOT NULL,
-				key tinytext NOT NULL,
-				value text NOT NULL,
+			"CREATE TABLE " . \RSSub\get_subscribe_table() . " (
+				id          mediumint(9) NOT NULL AUTO_INCREMENT,
+				uid         mediumint(9) NOT NULL,
+				account_id  mediumint(9),
+				post_type   text,
 				UNIQUE KEY id (id)
 			) $charset_collate;"
 		);
 
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		
-		dbDelta( $sql_sub );
-		dbDelta( $sql_ex  );
+		dbDelta( $sqls );
 
 		add_option( 'rssub_db_version', $rssub_db_version );
 		add_option( \RSSub\OPTION_SUBJECT, '' );

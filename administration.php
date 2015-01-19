@@ -6,6 +6,11 @@ function rssub_menu() {
 	add_options_page( 'Really Simple Subscriptions', 'Subscriptions', 'manage_options', 'rssub', 'rssub_options' );
 }
 
+function create_subscriptions($suber) {
+	$subs = RSSub\get_subscription_count_for_user($suber->hash);
+	return "<div class=\"col\"><a class=\"button button-small get-subs\" data-hash=\"{$suber->hash}\">Total: ".$subs."</a></div>";
+}
+
 function rssub_options() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -55,12 +60,6 @@ function rssub_options() {
 			</div>
 		<div class="rssub-right">
 			<div class="rssub-actionbox">
-			 <h1>Rule Editor</h1><div class="table">
-			 <?php
-
-			 ?></div>
-			</div>
-			<div class="rssub-actionbox">
 			 <h1>Allowed Post Types</h1><div class="table">
 			 <?php
 					$hasnames = false;
@@ -85,20 +84,22 @@ function rssub_options() {
 			 <button class="button button-large button-primary rssub-api-graph" data-api-graph="saveall-graph" href="#">Save All Changes</button>	
 			</div>
 			<div class="rssub-actionbox">
-				<h1>Active Subscriptions</h1>
+				<h1>Active Subscriptions (Showing today's subscriptions)</h1>
 				<div class="subtable">					
 					<div class="row">
 						<div class="col"><strong>E-mail</strong></div>
 						<div class="col"><strong>Activated</strong></div>
 						<div class="col"><strong>Delete</strong></div>
+						<div class="col"><strong>Subscriptions</strong></div>
 					</div><div class="rssub-clearfix"></div>
 					<?php
-						foreach (RSSub\get_subscribers(false) as $suber) {
+						foreach (RSSub\get_subscribers(false,true) as $suber) {
 							$checked = ($suber->active)?"checked":"";
 							echo "<div class=\"row\">
 											<div class=\"col\">{$suber->email}</div>
 											<div class=\"col\"><input type=\"checkbox\" name=\"active\" data-inverse=\"deactive\" class=\"_active\" value=\"{$suber->id}\" $checked></div>
 											<div class=\"col\"><input type=\"checkbox\" name=\"delete\" class=\"_delete\" value=\"{$suber->id}\"></div>
+											".create_subscriptions($suber)."
 										</div><div class=\"rssub-clearfix\"></div>";
 						};
 					?>

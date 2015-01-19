@@ -47,12 +47,19 @@ function rssub_api_handler() {
 						$result_data['message'] = "Post types successfully saved!";
 						$result_data['status'] = 1;								
 						break;
+					case "request_subscription_list":
+						$result_data['data'] = RSSub\get_subscriptions_for_user($_REQUEST['hash']);
+						$result_data['message'] = $_REQUEST['hash'];
+						$result_data['status'] = 1;								
+						break;
 					case "add_subscriber":
 						if (preg_match('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]+/i', $_REQUEST['email']) == 0) {
-							$result_data['message'] = "Invalid E-mail Specified.";
-							break;
+							throw new Exception("Invalid E-mail Specified.");
 						}
-						$res = RSSub\create_subscriber($_REQUEST['email'],$_REQUEST['active']==true);
+						if (!RSSub\create_subscriber($_REQUEST['email'],$_REQUEST['active']==true)) {
+							throw new Exception("An error occured while trying to add the provided e-mail: " . $_REQUEST['email']);
+						};
+						
 						$result_data['message'] = "Subscriber successfully added!";
 						$result_data['status'] = 1;								
 						break;
@@ -75,6 +82,7 @@ function rssub_api_handler() {
 				}
 			} else { throw new Exception("No action specified."); }
 		} catch (Exception $e) {
+			http_response_code(400);
 			$result_data['message'] = $e->getMessage();
 		}
 
