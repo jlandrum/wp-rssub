@@ -20,7 +20,10 @@ jQuery(function($) {
 			url: '/',
 			data: data,
 			success: function(msg){
-				Function("data", callback + "(data)")(msg);
+				Function("data", callback + "(data,200)")(msg);
+			},
+			error: function(msg){
+				Function("data", callback + "(data,status)")(msg.responseText,msg.status);
 			}
 		});
 	}

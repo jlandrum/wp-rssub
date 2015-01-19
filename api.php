@@ -56,8 +56,9 @@ function rssub_api_handler() {
 						if (preg_match('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]+/i', $_REQUEST['email']) == 0) {
 							throw new Exception("Invalid E-mail Specified.");
 						}
-						if (!RSSub\create_subscriber($_REQUEST['email'],$_REQUEST['active']==true)) {
-							throw new Exception("An error occured while trying to add the provided e-mail: " . $_REQUEST['email']);
+						$res = RSSub\create_subscriber($_REQUEST['email'],$_REQUEST['active']);
+						if (res != 1) {
+							throw new Exception("The subscriber " . $_REQUEST['email'] . " has already subscribed.");
 						};
 						
 						$result_data['message'] = "Subscriber successfully added!";

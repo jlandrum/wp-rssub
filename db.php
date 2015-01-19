@@ -18,7 +18,7 @@ namespace RSSub {
 				'active' => false
 			) 
 		)) {
-			return var_dump( $wpdb->last_error );
+			return $wpdb->last_error;
 		};
 		
 		if ($active == true) {
@@ -62,7 +62,7 @@ namespace RSSub {
 			array(
 				'hash' => $hash
 			)
-		))?true:var_dump( $wpdb->last_error );
+		))?true:$wpdb->last_error;
 	}
 	
 	function change_subscriber_activation_state($id,$active) {
