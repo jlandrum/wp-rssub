@@ -154,10 +154,9 @@ namespace RSSub {
 					($user==null?"(NULL),":"(%d),") .
 					($posttype==null?"(NULL)":"(%s)") .
 					";"
-			,$email,$user,$posttype))) {
+			,$email,$user==null?$posttype:$user,$posttype))) {
 			return $wpdb->last_query;
-		};
-		
+		};		
 		return true;
 	}
 
