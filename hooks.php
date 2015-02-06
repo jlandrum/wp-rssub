@@ -8,9 +8,11 @@
 	}
 
 	function rssub_new_post($id, $post) {
-		$mail = new RSSub\Mail(stripslashes(get_option(RSSub\OPTION_CONTENT,'')), stripslashes(get_option(RSSub\OPTION_SUBJECT,'')));
-		foreach (RSSub\get_subscribers(false) as $suber) {
-			$mail->send($suber->email, $post);
-		}
+    if(($_POST['post_status'] == 'publish' ) && ($_POST['original_post_status'] != 'publish')) {
+      $mail = new RSSub\Mail(stripslashes(get_option(RSSub\OPTION_CONTENT,'')), stripslashes(get_option(RSSub\OPTION_SUBJECT,'')));
+      foreach (RSSub\get_subscribers_for_params($post->post_author,$post->post_type) as $suber) {
+        $mail->send_post($suber->id, $post);
+      }
+    }
 	}
 	

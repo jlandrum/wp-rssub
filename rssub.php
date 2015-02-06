@@ -1,5 +1,5 @@
 <?php
-	/** 
+  /** 
   * Plugin Name: Really Simple Subscriptions
   * Description: A simple subscription system that allows bulk e-mailing to subscribers.
   * Author: James "Thyme Cypher" Landrum
@@ -7,18 +7,18 @@
   * License: MIT License
   */
 
-	// Internal Objects
-	include('db.php');
-	include('mailer.php');
-	
-	// Api
-	include('api.php');
+  // Internal Objects
+  include('db.php');
+  include('mailer.php');
 
-	// Hooks
-	include('hooks.php');
+  // Api
+  include('api.php');
 
-	// Front-end
+  // Hooks
+  include('hooks.php');
+
+  // Front-end
   include('administration.php');
-	include('integration.php');
+  include('integration.php');
 
-	register_activation_hook( __FILE__, 'RSSub\_Private\setup_plugin' );
+  register_activation_hook( __FILE__, 'RSSub\_Private\setup_plugin' );

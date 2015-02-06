@@ -1,4 +1,17 @@
-<?php namespace RSSub;
+<?php 
+namespace RSSub;
+  include_once('db.php');
+
+  function rw_trim_excerpt( $text='' )
+  {
+      $text = strip_shortcodes( $text );
+      $text = apply_filters('the_content', $text);
+      $text = str_replace(']]>', ']]&gt;', $text);
+      $excerpt_length = apply_filters('excerpt_length', 55);
+      $excerpt_more = apply_filters('excerpt_more', ' ' . '[...]');
+      return wp_trim_words( $text, $excerpt_length, $excerpt_more );
+  }
+
 
 	class Mail {
 		protected $message = "";
@@ -10,61 +23,93 @@
 		}
 
 		/** Sends the given message. **/
-		function send($to, $post = null) {
+		function send($uid) {
+      $user = get_subscriber_by_id($uid);
 			return wp_mail(
-				$to, 
-				$this->parseMessage($this->subject, $post, $to), 
-				$this->parseMessage($this->message, $post, $to),
+				$user->email, 
+				$this->parse_all($this->subject, $user), 
+				$this->parse_all($this->message, $user),
 				array('Content-Type: text/html' . "\r\n"));
 		}
 		
-		function send_activation($to, $hash) {
+    /** Sends the given message using a post. **/
+		function send_post($uid, $post = null) {
+      $user = get_subscriber_by_id($uid);
 			return wp_mail(
-				$to, 
-				$this->parseForActivation($this->subject, $hash), 
-				$this->parseForActivation($this->message, $hash),
+				$user->email, 
+				$this->parse_message($this->subject, $post, $user), 
+				$this->parse_message($this->message, $post, $user),
 				array('Content-Type: text/html' . "\r\n"));
 		}
-				
-		function parseForActivation($message,$hash) {
-			return str_replace(
+    
+    function send_activation($uid) {
+      $user = get_subscriber_by_id($uid);
+      return wp_mail(
+				$user->email, 
+				$this->parse_activation($this->subject, $user), 
+				$this->parse_activation($this->message, $user),
+				array('Content-Type: text/html' . "\r\n"));
+    }
+    
+    function create_link($hash, $action) {
+			return get_site_url() . "/?subscription_service&token=$hash&action=$action";
+		}
+    
+    function parse_all($message, $user) {
+      return str_replace(
 				array(
-							'{ACTIVATE_LINK}'
+          '{UNSUBSCRIBE_LINK}',
+          '{MANAGE_LINK}',
+          '{SITE_NAME}',
+          '{SITE_URL}',
+		    ),array(
+          $this->create_link($user->hash, "unsubscribe"),
+          $this->create_link($user->hash, "manage"),
+          get_bloginfo('name'),
+          get_site_url(),
+				), $message
+			);
+    }
+    
+        
+    function parse_message($message, $post, $user) {
+      $post_type = get_post_type_object($post->post_type);
+      $author = get_userdata($post->post_author);
+
+      $post_type_label = $post_type->labels->singular_name;
+      $post_title = $post->post_title;
+      $user_name = $author->display_name;
+      $content = rw_trim_excerpt($post->post_content);
+      
+      return str_replace(
+				array(
+          '{POST_TYPE}',
+          '{AUTHOR_NAME}',
+          '{POST_URL}',
+          '{POST_TITLE}',
+          '{POST_EXERPT}',
+        ),array(
+          $post_type_label, 
+          $user_name,
+          get_permalink(),
+          $post_title,
+          $content,
+        ), $this->parse_all($message, $user)
+			);
+    }
+    
+        
+    function parse_activation($message, $user) {
+      return str_replace(
+				array(
+							'{ACTIVATE_LINK}',
 						 ),
 				array(
-							$this->create_link($hash)
+							$this->create_link($user->hash, "activate"),
 						 ),
-				$message
+				$this->parse_all($message,$user)
 			);
-		}
-		
-		function create_link($hash) {
-			return get_site_url() . "/?subscription_service&token=$hash&redirect=" .  get_site_url();
-		}
-		
-		function parseMessage($message, $post, $target) {
-			if ($post == null) {
-				return $message;
-			}				
-			
-			setup_postdata($post); 
-			
-			$post_type = get_post_type_object( $post->post_type );
-			
-			return str_replace(
-				array('{POST_TYPE}',
-							'{AUTHOR_NAME}',
-						  '{POST_URL}',
-							'{UNSUBSCRIBE_LINK}'
-						 ),
-				array($post_type->labels->singular_name, 
-							get_the_author(),
-							get_permalink(),
-							"/"
-						 ),
-				$message
-			);
-		}
+    }
 	}
 
 	

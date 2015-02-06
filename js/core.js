@@ -1,7 +1,18 @@
 jQuery(function($) {
 	calls = 0;
 	failmsg = "";
-	
+  
+  	
+  $.fn.exval = function() {
+    if (this.attr('class')=='wp-editor-area') {
+      if(this.is(':visible')) {
+        return this.val();
+      } else {
+        return tinymce.get(this.attr('name')).getContent();
+      }
+    } else { return this.val(); }
+  }
+  
 	var api_graphs = {};
 	$('api-graph').each(function(e,t) {
 		$(t).detach();
@@ -26,7 +37,10 @@ jQuery(function($) {
 	
 	$('body').on('click','.sub_list_box', function(e) { $(this).remove(); });
 
-	
+	$('.rssub-actionbox:not(.fixed) h1').on('click', function() {
+    $(this).parent().toggleClass('collapsed');
+  });
+  
 	function handle_data_target(target) {
 		var data = {'rssubapi': '', 'action': $(target).data('action')};
 		var targets = $(target).data('targets').split(',');
@@ -34,13 +48,13 @@ jQuery(function($) {
 			var target = $(targets[i]);
 			var key = target.data('key') || target.attr('name');
 			data[key] = "";
-			target.each(function(i,o) {
-				var val = ($(o).attr('class')=='wp-editor-area') ? tinyMCE.get($(o).attr('id')).getContent() : $(o).val();	
-				if (!($(o).prop("type")=="checkbox")||$(o).prop("checked")) {
+			target.each(function() {
+				var val = $(this).exval();	
+				if (!($(this).prop("type")=="checkbox")||$(this).prop("checked")) {
 					data[key] += val + ",";
-				} else if ($(o).attr("data-inverse")) {
-					if (typeof data[$(o).data("inverse")] == "undefined") { data[$(o).data("inverse")] = ""; }
-					data[$(o).data("inverse")] += val + ",";			
+				} else if ($(this).attr("data-inverse")) {
+					if (typeof data[$(this).data("inverse")] == "undefined") { data[$(this).data("inverse")] = ""; }
+					data[$(this).data("inverse")] += val + ",";			
 				}
 			});
 			data[key] = data[key].replace(/,\s*$/, '');
