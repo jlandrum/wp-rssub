@@ -8,7 +8,7 @@
   */
 
   // Core Level
-  include_once('backcompat.php');
+  //include_once('backcompat.php');
   include_once('updater.php');
 
   // Internal Objects
