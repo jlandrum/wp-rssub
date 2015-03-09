@@ -21,7 +21,7 @@ jQuery(function($) {
 				data['post_type'] = $('input[data-field=post_type]').val();
 				data['hash'] = $(document).data('hash');
         data['meta'] = new Object();
-        $('input[data-field=meta]').each(function() {
+        $('[data-field=meta]').each(function() {
           data['meta'][$(this).attr('name')] = $(this).val();
         });
         console.log(data);

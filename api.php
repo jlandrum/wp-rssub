@@ -4,7 +4,7 @@ add_action( 'init', 'rssub_api_handler' );
 add_action( 'wp_head', 'rssub_token_js' );
 
 function rssub_api_handler() {
-	$result_data = ['message' => "Unknown error.", 'status' => 0];
+	$result_data = array('message' => "Unknown error.", 'status' => 0);
 	$output_mode = isset($_REQUEST['json'])?"json":"html";
 	$_REQUEST = array_merge($_GET, $_POST);
 
