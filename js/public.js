@@ -4,7 +4,7 @@ jQuery(function($) {
     
 		var $form = $(this).closest('form');
 		var action = $form.data('method');
-		var data = {'rssubapi': '', 'json': ''};
+    var data = {'rssubapi': '', 'json': ''};
 		
 		switch (action) {
 			case 'subscribe':
@@ -27,6 +27,8 @@ jQuery(function($) {
         console.log(data);
 				api_call(data, $form.data("callback"));
         break;
+      default:
+        console.log("Error: A method was attempted that is not supported by rssub.");
 		}
 	}); 
 	
