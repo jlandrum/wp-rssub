@@ -15,10 +15,16 @@ jQuery(function($) {
 				api_call(data, $form.data("callback"));
         break;
       case 'update':
-				data['action'] = "add_subscription";
+				data['action'] = "update_subscription";
 				data['email'] = $('input[data-field=email]').val();	
 				data['user_id'] = $('input[data-field=user_id]').val();
 				data['post_type'] = $('input[data-field=post_type]').val();
+				data['hash'] = $(document).data('hash');
+        data['meta'] = new Object();
+        $('input[data-field=meta]').each(function() {
+          data['meta'][$(this).attr('name')] = $(this).val();
+        });
+        console.log(data);
 				api_call(data, $form.data("callback"));
         break;
 		}
@@ -28,8 +34,12 @@ jQuery(function($) {
     window.rssubpop = function(data, code) {
       window.rssubpop = null;
       obj = JSON.parse(data);
-      console.log(obj);
+      $(document).data('hash', obj['data']['hash']);
       $('input[data-field=email]').val(obj['data']['email']);
+      for (entry in obj['data']['meta']) {
+        src = obj['data']['meta'][entry];
+        $("[name='"+src['_key']+"']").val(src['_value']);
+      }
     }
         
     var data = {'rssubapi': '', 'json': '', 'action': 'subinfo', 'hash': __rssub_token};

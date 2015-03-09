@@ -84,16 +84,15 @@ jQuery(function($) {
 	}
 	
 	function get_subscribers(target) {
+    $('body').append('<div class="sub_list_box"><ul class="sublist"></ul></div>');
 		$.ajax({
 			type: 'POST',
 			url: '/',
 			data: {'rssubapi': '', 'json': '', 'action': 'request_subscription_list', 'hash': target},
 			success: function(msg){
-				$('body').append('<div class="sub_list_box"><ul class="sublist"></ul></div>');
 				dat = JSON.parse(msg);
 				target = $('.sublist');				
 				target.append("<li><strong>User is subscribed to:</strong></li>");	
-				console.log(dat);
 				for (i in dat.data) {
 					item = dat.data[i];
 					if (item.post_type == null && item.account_id == null) {					
@@ -106,9 +105,39 @@ jQuery(function($) {
 						target.append("<li><strong>"+dat.data[i].post_type.capitalize()+"</strong>s from <strong>" + dat.data[i].display_name + "</strong>.</li>");					
 					}
 				}
+        target.append("<li>&nbsp;</li>");	
 			},
 			error: function(xhr,b,msg){
 				alert("Failed to fetch user subscriptions.");
+			}
+		});
+    $.ajax({
+			type: 'POST',
+			url: '/',
+			data: {'rssubapi': '', 'json': '', 'action': 'subinfo', 'hash': target},
+			success: function(msg){
+				dat = JSON.parse(msg);
+				target = $('.sublist');				
+				target.append("<li><strong>Metadata:</strong></li>");	
+        target.append(dat);
+				for (i in dat.data.meta) {
+          met = dat.data.meta[i];
+          target.append("<li><strong>" + met._key + ":</strong> " + met._value + ".</li>");
+				/*	item = dat.data[i];
+					if (item.post_type == null && item.account_id == null) {					
+						target.append("<li>Everything.</li>");					
+					} else if (item.account_id == null) {
+						target.append("<li>All <strong>" + dat.data[i].post_type.capitalize() + "s.</strong></li>");					
+					} else if (item.post_type == null) {
+						target.append("<li>Submissions from <strong>" + dat.data[i].display_name + "</strong>.</li>");										
+					} else {
+						target.append("<li><strong>"+dat.data[i].post_type.capitalize()+"</strong>s from <strong>" + dat.data[i].display_name + "</strong>.</li>");					
+					}*/
+				}
+        target.append("<li>&nbsp;</li>");	
+			},
+			error: function(xhr,b,msg){
+				alert("Failed to fetch user metadata.");
 			}
 		});
 	}

@@ -159,7 +159,8 @@ namespace RSSub {
 			WHERE $users.hash = \"$hash\";");
     $values['meta'] = $wpdb->get_results("SELECT $meta._key, $meta._value FROM $meta
 			JOIN $users ON ($users.id = $meta.uid)
-			WHERE $users.hash = \"$hash\";");
+			WHERE $users.hash = \"$hash\";", OBJECT_K );
+    $values['hash'] = $hash;
     return $values;
   }
   
@@ -206,6 +207,31 @@ namespace RSSub {
 		};		
 		return true;
 	}
+  
+  function sync_metadata($meta, $hash) {
+		global $wpdb;
+    
+    $users = get_user_table();
+    $metatable  = get_metadata_table();
+    
+    $wpdb->query(
+      $wpdb->prepare("
+        DELETE wp_rssub_metadata.*
+        FROM  $metatable
+        JOIN  $users ON ( $metatable.uid = $users.id ) 
+        WHERE $users.hash =  %s", $hash));
+    
+    
+    foreach ($meta as $key => $item) {
+      $wpdb->query($wpdb->prepare("
+      INSERT INTO `wp_rssub_metadata`
+        (uid, _key, _value)
+        SELECT
+          (SELECT id FROM wp_rssub_users WHERE hash = %s),
+          (%s),
+          (%s)", $hash, $key, $item));
+    }
+  }
 
 	const OPTION_ACTV_SUBJECT = "rssub_actv_subject";
 	const OPTION_ACTV_CONTENT = "rssub_actv_content";

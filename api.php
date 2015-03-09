@@ -117,6 +117,11 @@ function rssub_api_handler() {
 						$result_data['message'] = "Subscriber successfully updated!";
 						$result_data['status'] = 1;								
 						break;
+          case "update_subscription":
+            RSSub\sync_metadata($_REQUEST['meta'],$_REQUEST['hash']);
+						$result_data['message'] = "Subscriber successfully updated!";
+						$result_data['status'] = 1;								          
+            break;
 					default:
 						throw new Exception("Invalid action specified.");
 						break;
