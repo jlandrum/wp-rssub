@@ -72,11 +72,11 @@ jQuery(function($) {
       window.rssubpop = null;
       obj = JSON.parse(data);
       $(document).data('hash', obj['data']['hash']);
-      $('[data-field=email]').setval(obj['data']['email']);
-      $('[data-field=digest]').setval(obj['data']['schedule']);
+      $('form.rssub-data [data-field=email]').setval(obj['data']['email']);
+      $('form.rssub-data [data-field=digest]').setval(obj['data']['schedule']);
       for (entry in obj['data']['meta']) {
         src = obj['data']['meta'][entry];
-        $("[name='"+src['_key']+"']").setval(src['_value']);
+        $("form.rssub-data [name='"+src['_key']+"']").setval(src['_value']);
       }
     }
         
