@@ -124,7 +124,12 @@ function rssub_api_handler() {
 						$result_data['status'] = 1;								
 						break;
           case "update_subscription":
-            RSSub\sync_metadata($_REQUEST['meta'],$_REQUEST['hash'],$_REQUEST['email'],$_REQUEST['digest']);
+            $meta = isset($_REQUEST['meta'])?$_REQUEST['meta']:array();
+            $hash = isset($_REQUEST['hash'])?$_REQUEST['hash']:"";
+            $email = isset($_REQUEST['email'])?$_REQUEST['email']:"";
+            $digest = isset($_REQUEST['digest'])?$_REQUEST['digest']:null;
+          
+            RSSub\sync_metadata($meta,$hash,$email,$digest);
 						$result_data['message'] = "Subscriber successfully updated!";
 						$result_data['status'] = 1;								          
             break;

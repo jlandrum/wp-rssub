@@ -3,7 +3,7 @@
   * Plugin Name: Really Simple Subscriptions
   * Description: A simple subscription system that allows bulk e-mailing to subscribers.
   * Author: James "Thyme Cypher" Landrum
-  * Version: 0.9.0
+  * Version: 0.9.1
   * License: MIT License
   */
 
