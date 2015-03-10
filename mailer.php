@@ -33,6 +33,16 @@ namespace RSSub;
 		}
 		
     /** Sends the given message using a post. **/
+		function send_pending($uid, $posts = null) {
+      $user = get_subscriber_by_id($uid);
+			return \wp_mail(
+				$user->email, 
+				$this->parse_pending($this->subject, $posts, $user), 
+				$this->parse_pending($this->message, $posts, $user),
+				array('Content-Type: text/html' . "\r\n"));
+		}
+    
+    /** Sends the given message using a post. **/
 		function send_post($uid, $post = null) {
       $user = get_subscriber_by_id($uid);
 			return wp_mail(
@@ -109,6 +119,30 @@ namespace RSSub;
 						 ),
 				$this->parse_all($message,$user)
 			);
+    }
+    
+    function parse_pending($message, $posts, $user) {
+      return str_replace(
+				array(
+							'{POST_COUNT}',
+              '{POST_LIST}'
+						 ),
+				array(
+              count($posts),
+							$this->create_list($posts),
+						 ),
+				$this->parse_all($message,$user)
+			);
+    }
+    
+    function create_list($posts) {
+      $html = "<ul>";
+      foreach ($posts as $post) {
+        $post_title = $post->post_title;
+        $content = rw_trim_excerpt($post->post_content);
+        $html .= "<li><b>$post_title</b><br/>$content</li>";
+      }
+      return $html . "</ul>";
     }
 	}
 

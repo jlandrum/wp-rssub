@@ -61,6 +61,19 @@ function rssub_options() {
 						'teeny'         => true
 				)); ?><br/>
 			</div>
+      <div class="rssub-actionbox collapsed">
+			 <h1>Weekly Digest Template</h1>
+       <p>This message will be sent once a week with a digest of posts.</p>
+			 <input class="header" id="c_title" name="c_title" placeholder="Subject" data-key="subject" value="<?php echo stripslashes(get_option(RSSub\OPTION_DIGEST_SUBJECT,'')); ?>"/><br/>
+			 <?php wp_editor(stripslashes(get_option(RSSub\OPTION_DIGEST_CONTENT,'')),'digest_message',array(
+						'wpautop'       => true,
+						'media_buttons' => false,
+						'editor_selector' => 'digest_message',
+						'textarea_name' => 'digest_message',
+						'textarea_rows' => 10,
+						'teeny'         => true
+				)); ?><br/>
+			</div>
 		</div>
 		<div class="rssub-right">
 			<div class="rssub-actionbox">
@@ -84,6 +97,11 @@ function rssub_options() {
         <p>
           <em>{ACTIVATE_LINK}</em> - The URL for activating a subscription.<br/>
         </p>
+        <p><strong>Digest Templates</strong></p>
+        <p>
+          <em>{POST_COUNT}</em> - The amount of new posts.<br/>
+          <em>{POST_LIST}</em> - The digest.<br/>
+        </p>
       </div>
       <div class="rssub-actionbox fixed">
         
@@ -98,6 +116,7 @@ function rssub_options() {
 				  <api-call data-targets="#title,#message" data-action="update_template"></api-call>
 				  <api-call data-targets="#a_title,#activation_message" data-action="update_activation_template"></api-call>
 				  <api-call data-targets="#b_title,#subscribe_message" data-action="update_subscription_template"></api-call>
+				  <api-call data-targets="#c_title,#digest_message" data-action="update_digest_template"></api-call>
 				  <api-call data-targets="._delete,._active" data-action="update_subscriber"></api-call>
 				  <api-call data-targets="#pv_page,#ms_page,#un_page" data-action="update_pages"></api-call>
 			  </api-graph>

@@ -67,6 +67,12 @@ function rssub_api_handler() {
 						$result_data['message'] = "Configuration successfully saved!";
 						$result_data['status'] = 1;								
 						break;
+          case "update_digest_template":
+						update_option(RSSub\OPTION_DIGEST_SUBJECT, $_REQUEST['subject']);
+						update_option(RSSub\OPTION_DIGEST_CONTENT, $_REQUEST['digest_message']);					
+						$result_data['message'] = "Configuration successfully saved!";
+						$result_data['status'] = 1;								
+						break;
 					case "update_template":
 						update_option(RSSub\OPTION_SUBJECT, $_REQUEST['subject']);
 						update_option(RSSub\OPTION_CONTENT, $_REQUEST['message']);
@@ -118,7 +124,7 @@ function rssub_api_handler() {
 						$result_data['status'] = 1;								
 						break;
           case "update_subscription":
-            RSSub\sync_metadata($_REQUEST['meta'],$_REQUEST['hash']);
+            RSSub\sync_metadata($_REQUEST['meta'],$_REQUEST['hash'],$_REQUEST['email'],$_REQUEST['digest']);
 						$result_data['message'] = "Subscriber successfully updated!";
 						$result_data['status'] = 1;								          
             break;

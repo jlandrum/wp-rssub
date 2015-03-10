@@ -1,7 +1,7 @@
 <?php 
 namespace {
 	global $rssub_db_version;
-	$rssub_db_version = '2.0';
+	$rssub_db_version = '2.1';
 }
 
 namespace RSSub {
@@ -49,6 +49,44 @@ namespace RSSub {
     return $id;
 	}
 	
+  function add_pending_post($id, $pid) {
+    global $wpdb;
+    
+		$staged = get_staged_table();
+    
+    $wpdb->query($wpdb->prepare("
+			INSERT INTO $staged
+			(uid, postid) VALUES (%s,%s)",
+			$id,$pid));
+  }
+  
+  function get_pending_posts() {
+		global $wpdb;
+
+    $entries = array();
+    
+		$users = get_user_table();
+		$staged = get_staged_table();
+
+		$items = $wpdb->get_results("
+			SELECT $users.id,
+        $staged.postid 
+      FROM $users 
+      JOIN $staged 
+      ON ($staged.uid=$users.id)");
+        
+    foreach ($items as $item) {
+      if (!isset($entries[$item->id])) {
+        $entries[$item->id] = array();
+      }
+      $entries[$item->id][] = get_post($item->postid);
+    }
+    
+    $wpdb->query("DELETE FROM $staged");
+
+    return $entries;
+	}
+  
   function get_subscriber_by_id($id) {
 		global $wpdb;
 
@@ -128,7 +166,7 @@ namespace RSSub {
 		);
 	}
 	
-	function get_subscribers_for_params($userid, $posttype) {
+	function get_subscribers_for_params($userid, $posttype, $schedule = 0) {
 		global $wpdb;
 		 
 		$users = get_user_table();
@@ -137,6 +175,7 @@ namespace RSSub {
 		return $wpdb->get_results("SELECT DISTINCT $users.id FROM $subs 
 			JOIN $users ON ($users.id = uid)
 			WHERE
+      ($users.schedule = $schedule) AND
 			(account_id = $userid OR account_id IS NULL) AND
 			(post_type = '$posttype' OR post_type IS NULL);");											 
 	}
@@ -150,8 +189,9 @@ namespace RSSub {
 		$wp_users = $wpdb->prefix . "users";
 
     $values = array();
-		$temp = $wpdb->get_results($wpdb->prepare("SELECT email FROM $users
+		$temp = $wpdb->get_results($wpdb->prepare("SELECT email, schedule FROM $users
 			WHERE hash = %s;",$hash));	
+    $values['schedule'] = $temp[0]->schedule;    
     $values['email'] = $temp[0]->email;
     $values['subscriptions'] = $wpdb->get_results("SELECT $subs.id, $subs.post_type, $wp_users.display_name FROM $subs
 			JOIN $users ON ($users.id = uid)
@@ -208,11 +248,32 @@ namespace RSSub {
 		return true;
 	}
   
-  function sync_metadata($meta, $hash) {
+  function sync_metadata($meta, $hash, $email, $digest) {
 		global $wpdb;
     
     $users = get_user_table();
     $metatable  = get_metadata_table();
+    
+    $users = get_user_table();
+
+    if (!empty($email)) {
+      $wpdb->query(
+        $wpdb->prepare("
+          UPDATE $users
+          SET email=%s 
+          WHERE hash = %s
+        ", $email, $hash));
+    }
+
+    if (!empty($digest)) {
+      $wpdb->query(
+        $wpdb->prepare("
+          UPDATE $users
+          SET schedule=%d 
+          WHERE hash = %s
+        ", $digest, $hash));
+    }
+
     
     $wpdb->query(
       $wpdb->prepare("
@@ -239,7 +300,9 @@ namespace RSSub {
 	const OPTION_CONTENT = "rssub_content";
   const OPTION_SUBSCRIBE_SUBJECT = "rssub_sub_subject";
 	const OPTION_SUBSCRIBE_CONTENT = "rssub_sub_content";
-	const OPTION_POST_TYPES = "rssub_post_types";
+  const OPTION_DIGEST_SUBJECT = "rssub_dig_subject";
+	const OPTION_DIGEST_CONTENT = "rssub_dig_content";
+  const OPTION_POST_TYPES = "rssub_post_types";
 	const OPTION_PAGE_VERIFICATION = "rssub_page_verification";
 	const OPTION_PAGE_MANAGE = "rssub_page_manage";
 	const OPTION_PAGE_UNSUBSCRIBE = "rssub_page_unsubscribe";
@@ -247,6 +310,7 @@ namespace RSSub {
 	const TABLE_USER_DETAILS 			 = "rssub_users";
 	const TABLE_USER_SUBSCRIPTIONS = "rssub_subscriptions";
 	const TABLE_USER_METADATA      = "rssub_metadata";
+	const TABLE_USER_STAGED_POST   = "rssub_staged_posts";
 	
 	function get_user_table() {
 		global $wpdb;
@@ -261,6 +325,11 @@ namespace RSSub {
   function get_metadata_table() {
 		global $wpdb;
 		return $wpdb->prefix . TABLE_USER_METADATA;
+	}
+  
+  function get_staged_table() {
+		global $wpdb;
+		return $wpdb->prefix . TABLE_USER_STAGED_POST;
 	}
 }
 
@@ -278,6 +347,7 @@ namespace RSSub\_Private {
 				added   datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 				email  varchar(128) NOT NULL UNIQUE,
 				hash   text NOT NULL,
+				schedule   tinyint DEFAULT 0 NOT NULL,
 				active boolean NOT NULL,
 				UNIQUE KEY id (id)
 			) $charset_collate;",
@@ -293,6 +363,12 @@ namespace RSSub\_Private {
 				uid         mediumint(9) NOT NULL,
 				_key        text,
 				_value      text,
+				UNIQUE KEY id (id)
+			) $charset_collate;",
+      "CREATE TABLE " . \RSSub\get_staged_table() . " (
+				id          mediumint(9) NOT NULL AUTO_INCREMENT,
+				uid         mediumint(9) NOT NULL,
+				postid      mediumint(9),
 				UNIQUE KEY id (id)
 			) $charset_collate;"
 		);
