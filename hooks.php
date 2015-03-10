@@ -25,7 +25,7 @@
   function rssub_add_weekly_cron( $schedules ) {
     // add a 'weekly' schedule to the existing set
     $schedules['weekly'] = array(
-      'interval' => 600,
+      'interval' => 604800,
       'display' => __('Once Weekly')
     );
     return $schedules;

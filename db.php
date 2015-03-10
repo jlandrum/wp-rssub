@@ -271,7 +271,7 @@ namespace RSSub {
           UPDATE $users
           SET schedule=%d 
           WHERE hash = %s
-        ", $digest, $hash));
+        ", intval($digest), $hash));
     }
 
     
