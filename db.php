@@ -265,7 +265,7 @@ namespace RSSub {
         ", $email, $hash));
     }
 
-    if (!isset($digest)) {
+    if (isset($digest)) {
       $wpdb->query(
         $wpdb->prepare("
           UPDATE $users
