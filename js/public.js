@@ -7,7 +7,7 @@ jQuery.fn.setval = function(value) {
           $all = jQuery('[name='+jQuery(this[0]).attr('name')+']');
           $all.attr('checked',false);
           jQuery('[name='+jQuery(this[0]).attr('name')+'][value='+value+']').attr('checked',true);
-          break;
+          return;
         default:
           return jQuery(this[0]).val(value);    
       }
@@ -23,7 +23,6 @@ jQuery.fn.getval = function() {
       switch (jQuery(this[0]).attr('type')) {
         case "radio":
           return jQuery('[name='+jQuery(this[0]).attr('name')+']:checked').val();
-          break;
         default:
           return jQuery(this[0]).val();    
       }
