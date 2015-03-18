@@ -1,3 +1,4 @@
+<?php
 if (!method_exists($response,'http_response_code')) {
   public function http_response_code() {
     foreach ($this->headers as $header) {
@@ -8,3 +9,4 @@ if (!method_exists($response,'http_response_code')) {
     return 200;
   }
 }
+?>
