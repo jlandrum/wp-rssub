@@ -1,7 +1,7 @@
 <?php 
 namespace {
 	global $rssub_db_version;
-	$rssub_db_version = '2.1';
+	$rssub_db_version = '3.0';
 }
 
 namespace RSSub {
@@ -49,15 +49,15 @@ namespace RSSub {
     return $id;
 	}
 	
-  function add_pending_post($id, $pid) {
+  function add_pending_post($id, $pid, $date) {
     global $wpdb;
     
 		$staged = get_staged_table();
     
     $wpdb->query($wpdb->prepare("
 			INSERT INTO $staged
-			(uid, postid) VALUES (%s,%s)",
-			$id,$pid));
+			(uid, postid, date) VALUES (%s,%s,%s)",
+			$id,$pid,$date));
   }
   
   function get_pending_posts() {
@@ -73,7 +73,8 @@ namespace RSSub {
         $staged.postid 
       FROM $users 
       JOIN $staged 
-      ON ($staged.uid=$users.id)");
+      ON ($staged.uid=$users.id)
+      WHERE date < CURRENT_DATE()");
         
     foreach ($items as $item) {
       if (!isset($entries[$item->id])) {
@@ -179,6 +180,20 @@ namespace RSSub {
 			(account_id = $userid OR account_id IS NULL) AND
 			(post_type = '$posttype' OR post_type IS NULL);");											 
 	}
+  
+  function get_subscriber_frequency($id) {
+    global $wpdb;
+		 
+		$users = get_user_table();
+
+		$val = $wpdb->get_var($wpdb->prepare("SELECT schedule FROM $users
+			WHERE id = %d;",$id));
+    if (strtotime($val)) {
+      return strtotime($val);
+    } else {
+      return strtotime("now");
+    }
+  }
 	
   function get_subscriber_info($hash) {
     global $wpdb;
@@ -347,7 +362,7 @@ namespace RSSub\_Private {
 				added   datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
 				email  varchar(128) NOT NULL UNIQUE,
 				hash   text NOT NULL,
-				schedule   tinyint DEFAULT 0 NOT NULL,
+				schedule   varchar(128) DEFAULT 0 NOT NULL,
 				active boolean NOT NULL,
 				UNIQUE KEY id (id)
 			) $charset_collate;",
@@ -369,6 +384,7 @@ namespace RSSub\_Private {
 				id          mediumint(9) NOT NULL AUTO_INCREMENT,
 				uid         mediumint(9) NOT NULL,
 				postid      mediumint(9),
+        date        datetime
 				UNIQUE KEY id (id)
 			) $charset_collate;"
 		);

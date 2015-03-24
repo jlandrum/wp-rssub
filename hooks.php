@@ -17,7 +17,8 @@
         $mail->send_post($suber->id, $post);
       }
       foreach (RSSub\get_subscribers_for_params($post->post_author,$post->post_type,1) as $suber) {
-        RSSub\add_pending_post($suber->id, $post->ID);
+        $timestamp = RSSub\get_subscriber_frequency($suber->id);
+        RSSub\add_pending_post($suber->id, $post->ID, $timestamp );
       }
     }
 	}
@@ -32,7 +33,7 @@
   }
 
   if( !wp_next_scheduled( 'rssub_digest_hook' ) ) {
-    wp_schedule_event( time(), 'weekly', 'rssub_digest_hook' );
+    wp_schedule_event( time(), 'twicedaily', 'rssub_digest_hook' );
   }
 
   function rssub_digest() {

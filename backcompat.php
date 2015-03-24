@@ -1,12 +1,16 @@
 <?php
-if (!method_exists($response,'http_response_code')) {
-  function http_response_code() {
-    foreach ($this->headers as $header) {
-      if (preg_match("#^HTTP/\S+\s+(\d\d\d)#i",$header,$matches)) {
-        return $matches[1];
-      }
+if (!function_exists('http_response_code'))
+{
+    function http_response_code($newcode = NULL)
+    {
+        static $code = 200;
+        if($newcode !== NULL)
+        {
+            header('X-PHP-Response-Code: '.$newcode, true, $newcode);
+            if(!headers_sent())
+                $code = $newcode;
+        }       
+        return $code;
     }
-    return 200;
-  }
 }
 ?>
